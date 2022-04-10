@@ -7,6 +7,7 @@ using namespace std;
 struct process{
 	int id, arvtime, bsttime, cpttime, tat, wt;
 };
+// add a comment here by sxwjiang
 vector<process> inputNProcess(int n){
 	vector<process> pro(n);
 	for(int i=0;i<n;i++){
