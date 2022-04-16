@@ -1,3 +1,5 @@
+class my_monitor(){
+private:
 #include <unistd.h>
 #include <cstdlib>
 #include <condition_variable>
@@ -11,13 +13,13 @@ std::condition_variable notfull;
 std::condition_variable notempty;
 int count=0;
 //Set the total slots for products to 10.
-int totalproducts=10; 
+int total_products=10; 
 std::mutex mtx;
 void producer(){
 	while(1){
 		//Set the lock to avoid corruption.
-		std::unique_lock<std::mutex> mylock(mtx); 
-		while(count==totalproducts){
+		std::unique_lock<std::mutex> my_lock(mtx); 
+		while(count==total_products){
 			cout<<"producer is waiting for an empty slot."<<endl;
 			//When all slots are full, the producer stops producing and waits.
 			notfull.wait(mylock); 
@@ -26,7 +28,7 @@ void producer(){
 		cout<<"Product "<<count<<" is produced;"<<endl;
 		//Notify consumer that he can consume.
 		notempty.notify_all(); 
-		mylock.unlock();
+		//lock is released with RAII.
 	}
 }
 void consumer(){
@@ -35,19 +37,25 @@ void consumer(){
 		while(count==0){
 			cout<<"consumer is waiting for an available product."<<endl;
 			//When all slots are empty, consumer stops cusuming and waits.
-			notempty.wait(mylock); 
+			notempty.wait(my_lock); 
 		}
 		cout<<"Product "<<count<<" is consumed;"<<endl;		
 		count--;
 		//Notify producer that he can produce.
 		notfull.notify_all();
-		mylock.unlock(); 
+		//lock is released with RAII.
 	}
 }
+public:
+void RunMultiThreads(){
+std::thread p(producer);
+std::thread c(consumer);
+p.join();
+c.join();
+}
+};
 int main(){
-	thread p(producer);
-	thread c(consumer);
-	p.join();
-	c.join();
+	my_monitor test;
+	test.RunMultiThreads();
 	return 0;
 }
